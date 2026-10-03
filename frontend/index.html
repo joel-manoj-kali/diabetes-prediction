@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diabetes risk estimator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap masthead-inner">
+    <div>
+      <h1>Diabetes risk estimator</h1>
+      <p class="standfirst">Enter eight clinical measurements and the saved XGBoost pipeline returns
+      the probability that a person with that profile tested positive for diabetes.</p>
+    </div>
+    <dl class="masthead-stats">
+      <div><dt>Live predictor</dt><dd>XGBoost pipeline</dd></div>
+      <div><dt>Inputs</dt><dd>8 numeric features</dd></div>
+      <div><dt>Preprocessing</dt><dd>Fitted imputer</dd></div>
+      <div><dt>Response</dt><dd>Class + probability</dd></div>
+    </dl>
+  </div>
+</header>
+
+<main class="wrap layout">
+
+  <!-- ============ measurements ============ -->
+  <section class="measures" aria-labelledby="measures-h">
+    <div class="section-head">
+      <h2 id="measures-h">Measurements</h2>
+      <button type="button" class="ghost" id="reset">Reset to cohort median</button>
+    </div>
+
+    <p class="presets-label">Or load an example profile:</p>
+    <div class="presets" id="presets"></div>
+
+    <form id="form" novalidate>
+      <fieldset>
+        <legend>About you</legend>
+        <div class="fields" data-group="about"></div>
+      </fieldset>
+      <fieldset>
+        <legend>Blood work</legend>
+        <div class="fields" data-group="labs"></div>
+      </fieldset>
+      <fieldset>
+        <legend>Body measurements</legend>
+        <div class="fields" data-group="body"></div>
+      </fieldset>
+      <fieldset>
+        <legend>Family history</legend>
+        <div class="fields" data-group="family"></div>
+      </fieldset>
+    </form>
+  </section>
+
+  <!-- ============ readout ============ -->
+  <section class="readout" aria-labelledby="readout-h">
+    <div class="instrument">
+      <h2 id="readout-h" class="instrument-title">Estimated risk</h2>
+
+      <svg class="gauge" viewBox="0 0 320 196" role="img" aria-labelledby="gauge-desc">
+        <desc id="gauge-desc">Dial showing the estimated probability of a positive diabetes test</desc>
+        <g id="gauge-ticks"></g>
+        <path id="band-low"  class="band band-low"  d=""></path>
+        <path id="band-mid"  class="band band-mid"  d=""></path>
+        <path id="band-high" class="band band-high" d=""></path>
+        <path id="arc-value" class="arc-value" d=""></path>
+        <g id="needle" class="needle">
+          <line x1="160" y1="170" x2="160" y2="52"></line>
+          <circle cx="160" cy="170" r="7"></circle>
+        </g>
+      </svg>
+
+      <p class="verdict"><output id="prob" for="form">—</output><span class="pct">%</span></p>
+      <p class="band-label" id="band-label">Move a control to begin</p>
+      <p class="verdict-note" id="verdict-note"></p>
+
+      <div class="drivers">
+        <h3>What is moving this estimate</h3>
+        <p class="drivers-note">Reference-forest contrasts against the cohort median; the displayed probability comes from the saved backend model.</p>
+        <ul id="drivers"></ul>
+      </div>
+    </div>
+
+    <aside class="disclaimer">
+      <h3>This is not a medical test</h3>
+      <p>The model learned from 768 records of Pima women aged 21 and over, collected in the 1980s.
+      It reflects that group, not the general population, and it is wrong roughly one time in five.
+      Use it to explore how the features interact, not to decide anything about your health.
+      For that, see a doctor.</p>
+    </aside>
+  </section>
+
+  <!-- ============ comparison ============ -->
+  <section class="compare" aria-labelledby="compare-h">
+    <h2 id="compare-h">Your profile against the cohort</h2>
+    <p class="section-note">Each row places your value on the range seen in the data, next to the
+    average for people who tested negative and the average for people who tested positive.</p>
+    <div class="table-scroll">
+      <table id="compare-table">
+        <thead>
+          <tr>
+            <th scope="col">Measurement</th>
+            <th scope="col">Your value</th>
+            <th scope="col">Where it sits</th>
+            <th scope="col">Avg. negative</th>
+            <th scope="col">Avg. positive</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ model card ============ -->
+  <section class="modelcard" aria-labelledby="modelcard-h">
+    <h2 id="modelcard-h">About the model</h2>
+    <div class="modelcard-grid">
+      <div>
+        <h3>Live prediction</h3>
+        <p>The live result comes from the existing <code>backend/model.pkl</code>: a fitted
+        scikit-learn pipeline with a zero-value imputer and an XGBoost classifier. The backend
+        applies that saved preprocessing before inference; it does not retrain or replace the model.</p>
+        <p>The pipeline was saved without feature labels. Its eight-value order is the order defined
+        by the existing frontend exporter. Skinfold is converted from millimetres to inches, and
+        unmeasured optional values are sent as missing for the fitted imputer.</p>
+      </div>
+      <div>
+        <h3>Cohort reference forest</h3>
+        <dl class="metrics" id="metrics"></dl>
+        <p class="metrics-note">These evaluation metrics and feature contrasts describe the existing
+        browser-exported forest in <code>model.json</code>, not the live XGBoost predictor.</p>
+      </div>
+      <div class="importances-col">
+        <h3>Reference forest importance</h3>
+        <p class="section-note">From the existing cohort reference data.</p>
+        <ul class="importances" id="importances"></ul>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <p>Data: Pima Indians Diabetes Database (National Institute of Diabetes and Digestive and
+    Kidney Diseases). Model and interface built from the notebook in
+    <a href="https://github.com/krishnaik06/Diabetes-Prediction">krishnaik06/Diabetes-Prediction</a>.</p>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
