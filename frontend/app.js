@@ -430,5 +430,12 @@ function fail(err) {
 if (window.__MODEL__) {
   start(window.__MODEL__);
 } else {
-  fetch('model.json').then(r => r.json()).then(start).catch(fail);
+  const modelUrl = new URL('./model.json', import.meta.url);
+  fetch(modelUrl)
+    .then(response => {
+      if (!response.ok) throw new Error(`Could not load model.json (${response.status}).`);
+      return response.json();
+    })
+    .then(start)
+    .catch(fail);
 }
