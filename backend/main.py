@@ -69,7 +69,11 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Diabetes Risk Prediction API", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:8080", "http://127.0.0.1:8080"],
+    allow_origins=[
+        "http://localhost:8080",
+        "http://127.0.0.1:8080",
+        "https://diabetic-prediction.netlify.app",
+    ],
     allow_credentials=False,
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
