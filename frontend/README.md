@@ -1,9 +1,8 @@
 # Diabetes risk estimator — frontend
 
-A static HTML, CSS and JavaScript frontend with no framework or build step. Live predictions
-are sent to the FastAPI backend, which loads `../backend/model.pkl`. The existing `model.json`
-continues to power cohort-reference charts only. See the [project README](../README.md) for the
-complete local setup.
+An HTML, CSS and JavaScript frontend built and served with Vite. Live predictions are sent to the
+FastAPI backend, which loads `../backend/model.pkl`. The existing `model.json` continues to power
+cohort-reference charts only. See the [project README](../README.md) for the complete setup.
 
 ## Files
 
@@ -13,21 +12,22 @@ complete local setup.
 | `styles.css` | All styling, light and dark themes |
 | `app.js` | Form building, backend requests, gauge, comparison table |
 | `model.json` | Cohort reference forest and distribution summaries |
-| `diabetes-risk-standalone.html` | Everything above inlined into one file you can double-click |
 | `train_export.py` | Retrains the model and rewrites `model.json` |
 
 ## Running it
 
-`fetch()` cannot read `model.json` from a `file://` URL. Start the backend first, then serve this
-folder on port 8080:
+Install the frontend dependencies and start the Vite development server:
 
 ```bash
-python -m http.server 8080
-# then open http://localhost:8080
+npm install
+npm run dev
 ```
 
-On Windows, double-click `start-website.bat`. It starts the static server and opens the website
-in your browser. Python must be installed and available on `PATH`.
+The development server uses port 8080 to match the backend's existing local CORS allowlist.
+Vite loads `VITE_API_URL` from this folder's `.env` file. Copy `.env.example` to `.env` and set
+the backend URL there. The local `.env` is ignored by Git. The same variable must be configured
+in Vercel before building. For a production build, run `npm run build`; Vite writes the site to
+`dist/`, which is also the Vercel output directory. On Windows, `start-website.bat` starts Vite.
 
 ## The model
 
@@ -55,8 +55,8 @@ The reference forest stores each tree as a flat array of nodes, one node per row
 ```
 
 Internal nodes carry `featureIndex >= 0`; leaves carry `-1` and the probability of class 1.
-`app.js` uses this forest only for cohort-reference contrasts; the live prediction is always
-requested from `POST http://localhost:8000/predict`.
+`app.js` uses this forest only for cohort-reference contrasts; the live prediction is requested
+from `POST ${VITE_API_URL}/predict`.
 
 ### Retraining
 

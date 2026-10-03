@@ -38,20 +38,24 @@ python -m pip install -r requirements.txt
 uvicorn main:app --reload
 ```
 
-Keep this terminal open. The API is at `http://localhost:8000`. Check that the model loaded at
-`http://localhost:8000/health`; interactive API documentation is at `http://localhost:8000/docs`.
+Keep this terminal open. The API listens on port 8000; its health check is `/health` and its
+interactive API documentation is `/docs` at the backend's address.
 
 ## Start the frontend
 
-Open a second PowerShell window in the project root:
+Open a second PowerShell window in the project root. The frontend uses Vite and reads its backend
+URL from `frontend/.env`. Copy `frontend/.env.example` to `frontend/.env` and set `VITE_API_URL`
+to the backend URL you want to use. The local `.env` file is ignored by Git.
 
 ```powershell
 cd frontend
-python -m http.server 8080
+npm install
+npm run dev
 ```
 
-Alternatively, double-click `frontend/start-website.bat` from File Explorer. Open
-`http://localhost:8080` in a browser. Keep this terminal open too.
+Alternatively, double-click `frontend/start-website.bat` from File Explorer. Vite prints the local
+site address in the terminal. For a production build, run `npm run build` in `frontend/`; the
+output is `frontend/dist`.
 
 ## Generate a prediction
 
@@ -60,7 +64,7 @@ the values change; there is no separate submit button. Mark insulin, diastolic b
 skinfold as not measured when unavailable. The gauge displays the positive-class probability and
 the classifier's predicted class returned by the backend.
 
-The API accepts `POST http://localhost:8000/predict` with all eight fields, for example:
+The API accepts `POST /predict` with all eight fields, for example:
 
 ```json
 {
@@ -83,10 +87,11 @@ live gauge prediction.
 
 ## Troubleshooting
 
-- **Prediction unavailable / failed to fetch:** confirm Uvicorn is still running and
-  `http://localhost:8000/health` reports `"model_loaded": true`.
-- **CORS error:** serve the frontend on port 8080 as above. The backend allows `localhost:8080`
-  and `127.0.0.1:8080` during development.
+- **Prediction unavailable / failed to fetch:** confirm the configured backend is reachable and
+  its `/health` endpoint reports `"model_loaded": true`.
+- **CORS error:** the backend must allow the origin serving the frontend. Its current local
+  development allowlist covers Vite on port 8080; deployments need their frontend origin
+  (including the Vercel domain) allowed by the backend.
 - **`model.pkl` not found:** keep the original model at `backend/model.pkl` and start Uvicorn with
   the working directory set to `backend`.
 - **Missing Python packages or incompatible model libraries:** activate the backend environment

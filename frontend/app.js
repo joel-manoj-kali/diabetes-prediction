@@ -5,6 +5,8 @@
    Scoring below walks those trees, so predictions match sklearn.
    ============================================================ */
 
+const API_URL = (import.meta.env.VITE_API_URL || 'https://diabetes-prediction-71td.onrender.com')
+  .replace(/\/$/, '');
 const MM_PER_INCH = 25.4;          // dataset stores skinfold in inches ("skin")
 const IN_PER_MM = 1 / MM_PER_INCH;
 
@@ -279,9 +281,9 @@ function update() {
   }));
 
   document.getElementById('band-label').textContent = 'Updating prediction';
-  document.getElementById('verdict-note').textContent = 'Requesting the saved model from the local API.';
+  document.getElementById('verdict-note').textContent = 'Requesting the saved model from the API.';
 
-  fetch('http://localhost:8000/predict', {
+  fetch(`${API_URL}/predict`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
